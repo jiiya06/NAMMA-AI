@@ -1,0 +1,17 @@
+venv/
+__pycache__/
+*.pyc
+.env
+chat.db*
+.vscode/
+data/raw/
+_archive/
+archive/
+data/raw/
+*.bak*
+chat.db*
+.env
+venv/
+__pycache__/
+*.pyc
+.vscode/
