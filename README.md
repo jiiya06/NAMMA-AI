@@ -18,7 +18,7 @@ A general AI model will happily invent a route that doesn't exist. So here the m
 - Fastest or fewest-changes metro route with estimated time, stops, approximate fare and a line diagram
 - English, Hindi and Kannada questions, answered in the same language
 - Answers about fares, which lines are open and basic rules from our own knowledge file
-- Remembers the last 12 messages of a chat
+- Remembers the last 6 messages of a chat
 - Extra metro calculators: station info, a fair meeting point for two people, monthly commute cost, stations reachable in X minutes, how far a fare budget goes, fastest vs fewest-changes comparison, nearest interchange, multi-stop trips and network statistics
 - Refuses off-topic questions and says "I don't have that" for unknown stations
 - Trip planner page that works without the AI
@@ -36,7 +36,7 @@ No live data (delays, next train), no bus routes, no Pink or Blue Line (not open
 |---|---|
 | Frontend | HTML, CSS, JavaScript |
 | Backend | Python, FastAPI, Uvicorn |
-| AI | OpenAI Python SDK (Chat Completions) pointed at Groq, Qwen model |
+| AI | OpenAI Python SDK (Chat Completions) pointed at Groq, model openai/gpt-oss-120b |
 | Database | SQLite |
 | Other | python-dotenv, heapq and difflib from the standard library |
 
@@ -45,7 +45,7 @@ No LangChain or LlamaIndex. The prompt, memory and tool-calling loop are our own
 ## How it works
 
 1. `app.js` sends your message to `/api/chat`.
-2. `app.py` checks it, removes personal data and loads the last 12 messages from SQLite.
+2. `app.py` checks it, removes personal data and loads the last 6 messages from SQLite.
 3. `llm.py` builds the system prompt (persona, `knowledge.md`, scope rules, safety rules) and calls Groq.
 4. If a route is needed, the model calls the `plan_route` tool and `metro.py` searches `data/metro.json`.
 5. The model explains the result. The route card is built from the tool data, not the model's text.
@@ -123,7 +123,7 @@ If PowerShell blocks activation, run `Set-ExecutionPolicy -Scope Process -Execut
 ```
 PROVIDER_ORDER=groq
 GROQ_API_KEY=your_key_here
-GROQ_MODEL=qwen/qwen3.8-27b
+GROQ_MODEL=openai/gpt-oss-120b
 ```
 On Windows create it in Notepad (save as "All files"), not with PowerShell `echo`. Never share or commit this file.
 
@@ -186,7 +186,7 @@ Messages are sent to Groq, and the app says so. The privacy filter is best-effor
 - BMTC, https://mybmtc.karnataka.gov.in, for general bus information
 - Vonter's bmtc-gtfs feed, https://github.com/Vonter/bmtc-gtfs, tested and not used
 - OpenStreetMap contributors (ODbL), used while testing place lookups
-- Groq and the Qwen team; FastAPI, Uvicorn, OpenAI Python SDK, python-dotenv, Requests
+- Groq (model hosting) and the gpt-oss model; FastAPI, Uvicorn, OpenAI Python SDK, python-dotenv, Requests
 - Barlow and Noto Sans fonts via Google Fonts (SIL Open Font License)
 
 Code, station data and knowledge file are our own work. AI tools were used as a coding and writing aid.

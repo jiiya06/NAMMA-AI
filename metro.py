@@ -256,14 +256,21 @@ def multi_stop(stops):
     stops = [x for x in stops if str(x).strip()][:5]
     if len(stops) < 3:
         return {"error": "Give at least three stations in order, for example start, middle stop and end."}
-    legs, mins, fare, changes = [], 0, 0, 0
+    legs, mins, fare, changes, journeys = [], 0, 0, 0, []
     for a, b in zip(stops, stops[1:]):
         r = find_route(a, b)
         if "error" in r:
             return r
-        legs.append({"from": r["origin"], "to": r["destination"], "minutes": r["minutes_estimated"], "fare_inr": r["fare_inr_approx"], "changes": r["changes"]})
+        legs.append({"from": r["origin"], "to": r["destination"], "minutes": r["minutes_estimated"], "fare_inr": r["fare_inr_approx"], "changes": r["changes"],
+                     "stops": r["total_stops"], "lines": [l["line"] for l in r["legs"]], "change_at": [l["from"] for l in r["legs"][1:]]})
+        journeys.append(r)
         mins += r["minutes_estimated"]; fare += r["fare_inr_approx"]; changes += r["changes"]
-    return {"legs": legs, "total_minutes_estimated": mins, "total_fare_inr_approx": fare, "total_changes": changes,
+    summary = []
+    for x in legs:
+        line_text = " then ".join(x["lines"]) + " Line" + ("" if len(x["lines"]) == 1 else "s")
+        change_text = ", change at " + ", ".join(x["change_at"]) if x["change_at"] else ""
+        summary.append(f"{x['from']} to {x['to']}: {line_text}{change_text}, {x['stops']} stops, {x['minutes']} min, Rs {x['fare_inr']}")
+    return {"legs": legs, "summary_lines": summary, "_cards": journeys, "total_minutes_estimated": mins, "total_fare_inr_approx": fare, "total_changes": changes,
             "as_of": DATA["as_of"], "note": "Each leg is a separate trip, so fares are added per leg. Waiting time not included."}
 
 

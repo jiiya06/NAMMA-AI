@@ -58,6 +58,8 @@ Answer only about Bengaluru Namma Metro and general BMTC bus information from th
 - Never state a route, fare, timing or rule that did not come from a tool result or the knowledge text.
 - Copy every number (minutes, stops, fares, counts) exactly from the tool result. Do not round, add, or recalculate them yourself.
 - When you describe a route, give only: line names, start, end, number of stops, changes, minutes, distance and fare, all copied from the tool result. Do not list the stations in between and do not add any station that is not in the tool result.
+- When a tool returns several parts (multi_stop legs, meeting_point options, reachable_within stations, compare_routes), list every part with its own numbers from the tool result, then the totals. Never give only a total. For multi_stop, copy each line of summary_lines, then the totals.
+- For a trip through several stations, ALWAYS call multi_stop. Never add up or estimate the totals yourself.
 - If a tool returns an error, repeat that error in plain words. Do not suggest a different route or station on your own.
 - Do not mention any station, line or fact that is not in a tool result or the knowledge text.
 - For any question that names a station or place, ALWAYS call a tool first. Only a tool result can tell you whether a station exists. Never say you don't have a station unless a tool returned that error. Nicknames such as Ulsoor, Silk Board, KR Pura and Majestic are handled by the tool, so pass them exactly as typed.
@@ -142,7 +144,7 @@ def call_provider(p, history, language, length):
     messages = [{"role": "system", "content": build_prompt(language, length)}] + history
     cards, tokens = [], 0
     for _ in range(4):  # at most 4 model calls per question
-        resp = client.chat.completions.create(model=p["model"], messages=messages, tools=TOOLS, temperature=0.1)
+        resp = client.chat.completions.create(model=p["model"], messages=messages, tools=TOOLS, temperature=0.1, extra_body=({"reasoning_effort": "none"} if "qwen" in p["model"] else {}))
         if resp.usage:
             tokens += resp.usage.total_tokens
         msg = resp.choices[0].message
@@ -157,6 +159,8 @@ def call_provider(p, history, language, length):
             except ValueError:
                 args = {}
             result = run_tool(tc.function.name, args)
+            for c in result.pop("_cards", []):
+                cards.append(c)
             if result.get("type") == "journey":
                 cards.append(result)
             messages.append({"role": "tool", "tool_call_id": tc.id, "content": json.dumps(result, ensure_ascii=False)})

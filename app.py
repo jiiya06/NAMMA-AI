@@ -9,7 +9,7 @@ import llm, metro
 BASE = Path(__file__).parent
 DB_FILE = BASE / "chat.db"
 MAX_LEN = 500        # longest allowed message
-HISTORY_LIMIT = 12   # messages remembered per session
+HISTORY_LIMIT = 6    # messages remembered per session
 
 app = FastAPI(title="NammaAI")
 
