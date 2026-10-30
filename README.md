@@ -19,6 +19,7 @@ A general AI model will happily invent a route that doesn't exist. So here the m
 - English, Hindi and Kannada questions, answered in the same language
 - Answers about fares, which lines are open and basic rules from our own knowledge file
 - Remembers the last 12 messages of a chat
+- Extra metro calculators: station info, a fair meeting point for two people, monthly commute cost, stations reachable in X minutes, how far a fare budget goes, fastest vs fewest-changes comparison, nearest interchange, multi-stop trips and network statistics
 - Refuses off-topic questions and says "I don't have that" for unknown stations
 - Trip planner page that works without the AI
 - Light/dark mode, chat export, thumbs up/down, chat delete
@@ -52,6 +53,26 @@ No LangChain or LlamaIndex. The prompt, memory and tool-calling loop are our own
 
 The four customization layers: persona, scope and safety rules are in `build_prompt()` in `llm.py`; custom knowledge is `knowledge.md` and `data/metro.json`.
 
+## Tools the model can call
+
+The model never calculates. It picks one of these Python functions (function calling) and explains the result.
+
+| Tool | What it does |
+|---|---|
+| `plan_route` | Fastest or fewest-changes route with time, stops, fare |
+| `list_stations` | Stations of one line |
+| `station_info` | Lines, interchange status and neighbours of a station |
+| `meeting_point` | Tries every station and picks the fairest meeting place for two people |
+| `trip_cost` | Cost of a regular commute (fare x trips x days) |
+| `reachable_within` | Stations reachable from a station in X minutes |
+| `budget_reach` | How far a given fare budget goes from a station |
+| `compare_routes` | Fastest and fewest-changes routes side by side |
+| `nearest_interchange` | Closest interchange and how many stations away |
+| `multi_stop` | Total time and fare for a trip through 3 to 5 stations |
+| `network_stats` | Stations per line and interchanges, counted from the data |
+
+Most of these reuse one Dijkstra search from a station, which gives the cost to every other station. Only the meaning of "cost" changes (minutes or number of stations).
+
 ## Files
 
 ```
@@ -61,7 +82,7 @@ metro.py        route finder and fare slabs
 knowledge.md    knowledge the bot reads
 data/metro.json lines, stations, nicknames, alerts
 static/         index.html, style.css, app.js
-tests/          test_set.csv, run_tests.py
+tests/          test_set.csv, run_tests.py, verify_data.py
 ```
 
 ## Setup
@@ -118,7 +139,13 @@ With the server running, in a second terminal:
 ```bash
 python tests/run_tests.py
 ```
-It sends the 25 questions in `tests/test_set.csv` (routes, Hindi, Kannada, refusals, unknown stations, privacy, prompt injection) and saves results in the database. It is a keyword check, so a fail can still be a fine answer worded differently, and we read failures by hand. Usage numbers are at http://127.0.0.1:8000/api/stats.
+It sends the 34 questions in `tests/test_set.csv` (routes, Hindi, Kannada, refusals, unknown stations, privacy, prompt injection) and saves results in the database. It is a keyword check, so a fail can still be a fine answer worded differently, and we read failures by hand. Usage numbers are at http://127.0.0.1:8000/api/stats.
+
+To check the numbers without the AI or internet:
+```bash
+python tests/verify_data.py
+```
+It prints each line's station order (to compare with the BMRCL map), checks the data for mistakes, and compares the code's routes, fares and tool results with values worked out by hand (2.2 minutes per station, 5 minutes per line change, 1 station = 1 km for fares).
 
 ## Database
 
