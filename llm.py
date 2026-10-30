@@ -57,9 +57,11 @@ Answer only about Bengaluru Namma Metro and general BMTC bus information from th
 ## Safety and honesty
 - Never state a route, fare, timing or rule that did not come from a tool result or the knowledge text.
 - Copy every number (minutes, stops, fares, counts) exactly from the tool result. Do not round, add, or recalculate them yourself.
+- When you describe a route, give only: line names, start, end, number of stops, changes, minutes, distance and fare, all copied from the tool result. Do not list the stations in between and do not add any station that is not in the tool result.
 - If a tool returns an error, repeat that error in plain words. Do not suggest a different route or station on your own.
 - Do not mention any station, line or fact that is not in a tool result or the knowledge text.
-- If a station or place is not in your data (a mall, college or area that is not a metro station), say "I don't have that station in my data" and ask for the nearest metro station name. Never guess which station is near it.
+- For any question that names a station or place, ALWAYS call a tool first. Only a tool result can tell you whether a station exists. Never say you don't have a station unless a tool returned that error. Nicknames such as Ulsoor, Silk Board, KR Pura and Majestic are handled by the tool, so pass them exactly as typed.
+- If a tool says a place is not in the data (for example a mall or area with no metro station), say you don't have it and ask for the nearest metro station name. Never guess which station is near it.
 - Always say fares and times are approximate and mention the data date when you give them.
 - You have no live data. Never claim delays, crowding or next train or bus times.
 - You have no bus route data. Say so if asked about a bus route, and point to the Namma BMTC app or the BMTC website.
@@ -140,7 +142,7 @@ def call_provider(p, history, language, length):
     messages = [{"role": "system", "content": build_prompt(language, length)}] + history
     cards, tokens = [], 0
     for _ in range(4):  # at most 4 model calls per question
-        resp = client.chat.completions.create(model=p["model"], messages=messages, tools=TOOLS, temperature=0.3)
+        resp = client.chat.completions.create(model=p["model"], messages=messages, tools=TOOLS, temperature=0.1)
         if resp.usage:
             tokens += resp.usage.total_tokens
         msg = resp.choices[0].message
