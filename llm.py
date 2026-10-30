@@ -56,6 +56,9 @@ Answer only about Bengaluru Namma Metro and general BMTC bus information from th
 
 ## Safety and honesty
 - Never state a route, fare, timing or rule that did not come from a tool result or the knowledge text.
+- Copy every number (minutes, stops, fares, counts) exactly from the tool result. Do not round, add, or recalculate them yourself.
+- If a tool returns an error, repeat that error in plain words. Do not suggest a different route or station on your own.
+- Do not mention any station, line or fact that is not in a tool result or the knowledge text.
 - If a station or place is not in your data (a mall, college or area that is not a metro station), say "I don't have that station in my data" and ask for the nearest metro station name. Never guess which station is near it.
 - Always say fares and times are approximate and mention the data date when you give them.
 - You have no live data. Never claim delays, crowding or next train or bus times.
@@ -80,12 +83,53 @@ TOOLS = [
 ]
 
 
+TOOLS += [
+    {"type": "function", "function": {"name": "station_info", "description": "Which lines a metro station is on, whether it is an interchange, and its neighbouring stations.",
+        "parameters": {"type": "object", "properties": {"station": {"type": "string"}}, "required": ["station"]}}},
+    {"type": "function", "function": {"name": "meeting_point", "description": "Suggest the best metro station for two people starting at different stations to meet.",
+        "parameters": {"type": "object", "properties": {"a": {"type": "string"}, "b": {"type": "string"}}, "required": ["a", "b"]}}},
+    {"type": "function", "function": {"name": "trip_cost", "description": "Cost of a regular commute between two stations, per day and in total.",
+        "parameters": {"type": "object", "properties": {"origin": {"type": "string"}, "destination": {"type": "string"},
+            "trips_per_day": {"type": "integer"}, "days": {"type": "integer"}}, "required": ["origin", "destination"]}}},
+    {"type": "function", "function": {"name": "reachable_within", "description": "Stations reachable from a station within a number of minutes.",
+        "parameters": {"type": "object", "properties": {"station": {"type": "string"}, "minutes": {"type": "integer"}}, "required": ["station", "minutes"]}}},
+    {"type": "function", "function": {"name": "budget_reach", "description": "How far you can travel from a station for a given fare budget in rupees.",
+        "parameters": {"type": "object", "properties": {"station": {"type": "string"}, "budget_inr": {"type": "integer"}}, "required": ["station", "budget_inr"]}}},
+    {"type": "function", "function": {"name": "compare_routes", "description": "Compare the fastest route with the fewest-changes route between two stations.",
+        "parameters": {"type": "object", "properties": {"a": {"type": "string"}, "b": {"type": "string"}}, "required": ["a", "b"]}}},
+    {"type": "function", "function": {"name": "nearest_interchange", "description": "Nearest interchange station to a station and how many stations away.",
+        "parameters": {"type": "object", "properties": {"station": {"type": "string"}}, "required": ["station"]}}},
+    {"type": "function", "function": {"name": "multi_stop", "description": "Total time and fare for a trip through three to five stations in order.",
+        "parameters": {"type": "object", "properties": {"stops": {"type": "array", "items": {"type": "string"}}}, "required": ["stops"]}}},
+    {"type": "function", "function": {"name": "network_stats", "description": "Counts of stations per line, interchanges and which lines are open.",
+        "parameters": {"type": "object", "properties": {}}}},
+]
+
+
 def run_tool(name, args):
     try:
         if name == "plan_route":
             return metro.find_route(args.get("origin", ""), args.get("destination", ""), args.get("preference", "fastest"))
         if name == "list_stations":
             return metro.list_stations(args.get("line", ""))
+        if name == "station_info":
+            return metro.station_info(args.get("station", ""))
+        if name == "meeting_point":
+            return metro.meeting_point(args.get("a", ""), args.get("b", ""))
+        if name == "trip_cost":
+            return metro.trip_cost(args.get("origin", ""), args.get("destination", ""), args.get("trips_per_day", 2), args.get("days", 26))
+        if name == "reachable_within":
+            return metro.reachable_within(args.get("station", ""), args.get("minutes", 20))
+        if name == "budget_reach":
+            return metro.budget_reach(args.get("station", ""), args.get("budget_inr", 30))
+        if name == "compare_routes":
+            return metro.compare_routes(args.get("a", ""), args.get("b", ""))
+        if name == "nearest_interchange":
+            return metro.nearest_interchange(args.get("station", ""))
+        if name == "multi_stop":
+            return metro.multi_stop(args.get("stops", []))
+        if name == "network_stats":
+            return metro.network_stats()
         return {"error": "unknown tool"}
     except Exception as e:
         return {"error": f"tool failed: {e}"}

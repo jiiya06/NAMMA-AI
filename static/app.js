@@ -118,7 +118,6 @@ function welcome() {
   const w = el("div", "welcome");
   w.appendChild(el("h2", "", "Where to?"));
   w.appendChild(el("p", "", "Name a station or place and I'll find the way by Namma Metro. I can also answer metro fare and rule questions."));
-  w.appendChild(el("p", "muted", "हिन्दी में भी पूछ सकते हैं। ಕನ್ನಡದಲ್ಲಿಯೂ ಕೇಳಬಹುದು."));
   return w;
 }
 

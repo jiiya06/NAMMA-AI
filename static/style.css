@@ -113,3 +113,7 @@ input:focus,select:focus{border-color:var(--accent);outline:none}
   #chatList .del{opacity:1}
 }
 textarea:focus-visible{outline:none}
+/* chips one row */
+.chips{flex-wrap:nowrap;justify-content:safe center;overflow-x:auto;gap:.4rem;margin-bottom:.6rem;scrollbar-width:none}
+.chips::-webkit-scrollbar{display:none}
+.chips button{flex:none;white-space:nowrap;font-size:.8rem;padding:.2rem .7rem}
